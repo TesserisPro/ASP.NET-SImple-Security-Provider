@@ -1,0 +1,6 @@
+packages/
+SampleProject/bin/
+SampleProject/obj/
+*.suo
+Tesseris.Web.SimpleSecurity/bin/
+Tesseris.Web.SimpleSecurity/obj/
