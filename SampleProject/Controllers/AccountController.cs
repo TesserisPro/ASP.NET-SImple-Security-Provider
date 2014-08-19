@@ -21,9 +21,9 @@ namespace SampleProject.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (SimpleSecurityProvider.Current.Login(login.Name, login.Password, login.RememberMe))
+                if (SimpleSecurityProvider.Current.Login(login.Name, login.Password, login.RememberMe, 1))
                 {
-                    return Redirect(returnUrl);
+                    return Redirect(returnUrl ?? "/");
                 }
 
                 ModelState.AddModelError("", "Invalid username or password.");
@@ -49,7 +49,7 @@ namespace SampleProject.Controllers
             {
                 if (SimpleSecurityProvider.Current.Register(user.Name, user.Password, user.Roles))
                 {
-                    return View("Login");
+                    return RedirectToAction("Login");
                 }
 
                 ModelState.AddModelError("", "Using with such name already registered.");

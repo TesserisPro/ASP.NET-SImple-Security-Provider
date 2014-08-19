@@ -145,7 +145,7 @@ namespace Tesseris.Web.SimpleSecurity
         /// <param name="user">The user.</param>
         /// <param name="password">The password.</param>
         /// <param name="keep">if set to <c>true</c> will keep authentication cookies between browser sessions.</param>
-        /// <param name="timeout">The expiration timeout.</param>
+        /// <param name="timeout">The expiration timeout in minutes.</param>
         /// <returns><c>true</c> if user logged in successfully (found in DB)</returns>
         public bool Login(string user, string password, bool keep = false, int timeout = 60)
         {
@@ -245,10 +245,10 @@ namespace Tesseris.Web.SimpleSecurity
                     // User already exists
                     return false;
                 }
-                
+                                
                 connection.Execute(
                     "insert into [user](name, password, role) values(@user,@password,@role)",
-                    new { user = user, password = GetHash(password), role = roles });
+                    new { user = user, password = GetHash(password), role = roles ?? string.Empty });
             }
 
             return true;
