@@ -1,0 +1,14 @@
+﻿body {
+}
+
+.form-horizontal{
+    width: 480px;
+    margin-left:auto;
+    margin-right:auto;
+    margin-top: 180px;
+}
+
+.validation-summary-errors ul{
+    list-style: none;
+    padding: 0;
+}

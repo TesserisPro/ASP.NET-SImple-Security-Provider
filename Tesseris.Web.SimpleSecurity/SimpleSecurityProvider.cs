@@ -151,6 +151,11 @@ namespace Tesseris.Web.SimpleSecurity
         {
             VerifyInitialized();
 
+            if(string.IsNullOrEmpty(user) || string.IsNullOrEmpty(password))
+            {
+                return false;
+            }
+
             using (var connection = new SqlConnection(connectionString))
             {
                 var foundUser = connection
@@ -229,16 +234,24 @@ namespace Tesseris.Web.SimpleSecurity
         /// <param name="user">The user.</param>
         /// <param name="password">The password.</param>
         /// <param name="roles">The roles.</param>
-        public void Register(string user, string password, string roles)
+        public bool Register(string user, string password, string roles)
         {
             VerifyInitialized();
 
             using (var connection = new SqlConnection(connectionString))
             {
+                if(connection.Query("select * from [user] where name = @user",  new { user = user }).Any())
+                {
+                    // User already exists
+                    return false;
+                }
+                
                 connection.Execute(
-                    "insert into [user](user, password, role) values(@user,@password,@role)",
+                    "insert into [user](name, password, role) values(@user,@password,@role)",
                     new { user = user, password = GetHash(password), role = roles });
             }
+
+            return true;
         }
 
         /// <summary>
@@ -252,7 +265,7 @@ namespace Tesseris.Web.SimpleSecurity
             using (var connection = new SqlConnection(connectionString))
             {
                 connection.Execute(
-                    "delete [user] where user = @user",
+                    "delete [user] where name = @user",
                     new { user = user });
             }
         }
