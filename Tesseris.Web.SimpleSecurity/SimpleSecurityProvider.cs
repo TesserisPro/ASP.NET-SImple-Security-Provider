@@ -121,19 +121,25 @@ namespace Tesseris.Web.SimpleSecurity
         public GenericPrincipal GetPrincipalFromRequest()
         {
             VerifyInitialized();
-
-            var ticketCoockie = HttpContext.Current.Request.Cookies[ticketCookieName];
-            if(ticketCoockie != null && !string.IsNullOrEmpty(ticketCoockie.Value))
+            try
             {
-                var ticket = FormsAuthentication.Decrypt(ticketCoockie.Value);
-                if (!ticket.Expired)
+                var ticketCoockie = HttpContext.Current.Request.Cookies[ticketCookieName];
+                if (ticketCoockie != null && !string.IsNullOrEmpty(ticketCoockie.Value))
                 {
-                    var roles = GetUserRoles(ticket.Name);
-                    if (roles != null)
+                    var ticket = FormsAuthentication.Decrypt(ticketCoockie.Value);
+                    if (!ticket.Expired)
                     {
-                        return BuildPrincipal(ticket.Name, roles);
+                        var roles = GetUserRoles(ticket.Name);
+                        if (roles != null)
+                        {
+                            return BuildPrincipal(ticket.Name, roles);
+                        }
                     }
                 }
+            }
+            catch(CryptographicException ex)
+            {
+                return new GenericPrincipal(new EmptyIdentity(), new string[] { });
             }
 
             return new GenericPrincipal(new EmptyIdentity(), new string[]{});
@@ -271,12 +277,52 @@ namespace Tesseris.Web.SimpleSecurity
             }
         }
 
+        /// <summary>
+        /// Returns list of registered users
+        /// </summary>
+        /// <returns>List of GnericPrincipals with GenericIdentity</returns>
         public IEnumerable<GenericPrincipal> GetRegisteredUsers()
         {
+            VerifyInitialized();
+
             using (var connection = new SqlConnection(connectionString))
             {
-                var users = connection.Query("select user, role from [user]");
-                return users.Select(x=> new GenericPrincipal(new GenericIdentity(x.user ))
+                var users = connection.Query("select name, role from [user]");
+                return users.Select(x => new GenericPrincipal(new GenericIdentity(x.name), SplitRoles(x.role))).ToList();
+            }
+        }
+        
+        /// <summary>
+        /// Updates user roles
+        /// </summary>
+        /// <param name="user">User to update</param>
+        /// <param name="password">New roles</param>
+        public void SetUserRoles(string user, string roles)
+        {
+            VerifyInitialized();
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Execute(
+                    "update [user] set role=@role where name = @user",
+                    new { user = user, role = roles });
+            }
+        }
+
+        /// <summary>
+        /// Updates user password
+        /// </summary>
+        /// <param name="user">User to update</param>
+        /// <param name="password">New password</param>
+        public void SetUserPassword(string user, string password)
+        {
+            VerifyInitialized();
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                connection.Execute(
+                    "update [user] set password=@password where name = @user",
+                    new { user = user, password = GetHash(password) });
             }
         }
 
