@@ -22,6 +22,7 @@
 
 using Dapper;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Linq;
@@ -270,6 +271,15 @@ namespace Tesseris.Web.SimpleSecurity
             }
         }
 
+        public IEnumerable<GenericPrincipal> GetRegisteredUsers()
+        {
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var users = connection.Query("select user, role from [user]");
+                return users.Select(x=> new GenericPrincipal(new GenericIdentity(x.user ))
+            }
+        }
+
         /// <summary>
         /// Builds the principal
         /// </summary>
@@ -299,11 +309,21 @@ namespace Tesseris.Web.SimpleSecurity
                 if (foundUser != null)
                 {
                     var roles = ((string)foundUser.roles) ?? string.Empty;
-                    return roles.Split(',').Select(x=>x.Trim()).ToArray();
+                    return SplitRoles(roles);
                 }
             }
 
             return null;
+        }
+        
+        /// <summary>
+        /// Splits roles
+        /// </summary>
+        /// <param name="roles">Coma separated string with roles</param>
+        /// <returns>Array of roles</returns>
+        private static string[] SplitRoles(string roles)
+        {
+            return roles.Split(',').Select(x => x.Trim()).ToArray();
         }
 
         /// <summary>
