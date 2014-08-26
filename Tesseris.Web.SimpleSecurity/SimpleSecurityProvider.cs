@@ -132,8 +132,26 @@ namespace Tesseris.Web.SimpleSecurity
                         var roles = GetUserRoles(ticket.Name);
                         if (roles != null)
                         {
+                            // Update expiration period of cookies
+                            if (ticket.Expiration != DateTime.MinValue)
+                            {
+                                var authCookie = BuildAuthCookie(ticket.Name, false, (int)(ticket.Expiration - ticket.IssueDate).TotalMinutes);
+                                HttpContext.Current.Response.AppendCookie(authCookie);
+                            }
+
                             return BuildPrincipal(ticket.Name, roles);
                         }
+                    }
+                    else
+                    {
+                        // Remove cookies
+                        HttpContext.Current.Response.SetCookie(BuildAuthCookie());
+                        HttpContext.Current.Response.SetCookie(new HttpCookie(userCookieName, "")
+                        {
+                            Expires = DateTime.MinValue,
+                            HttpOnly = false,
+                            Shareable = false
+                        });
                     }
                 }
             }
@@ -201,6 +219,13 @@ namespace Tesseris.Web.SimpleSecurity
         public void Logout()
         {
             HttpContext.Current.Response.SetCookie(BuildAuthCookie());
+            HttpContext.Current.Response.SetCookie(new HttpCookie(userCookieName, "")
+            {
+                Expires = DateTime.MinValue,
+                HttpOnly = false,
+                Shareable = false
+            });
+
             HttpContext.Current.User = new GenericPrincipal(new EmptyIdentity(), new string[] { });
         }
 

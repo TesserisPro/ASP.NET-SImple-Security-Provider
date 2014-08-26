@@ -1,4 +1,5 @@
-﻿
+﻿@using Tesseris.Web.SimpleSecurity
+
 @{
     ViewBag.Title = "Home Page";
     Layout = "~/Views/_Layout.cshtml";
@@ -19,11 +20,49 @@
     </div>
 
     <!-- Jumbotron -->
-    <div class="jumbotron">
+    <div>
         <h2>It's sample content page for ASP.NET Simple Security Provider</h2>
         <br />
-        <p>@Html.ActionLink("Logout", "Logout", "Account", new { }, new { @class = "btn btn-lg btn-success" })</p>
-        <p>@Html.ActionLink("Unregister current user", "Unregister", "Account", new { }, new { @class = "btn btn-lg btn-danger" })</p>
+        <div class="row">
+            <div class="col-lg-6">
+                <p>@Html.ActionLink("Logout", "Logout", "Account", new { }, new { @class = "btn btn-lg btn-success" })</p>
+                <p>@Html.ActionLink("Unregister current user", "Unregister", "Account", new { }, new { @class = "btn btn-lg btn-danger" })</p>
+                <p>@Html.ActionLink("Register new user", "Register", "Account", new { }, new { @class = "btn btn-lg btn-primary" })</p>
+                <!-- Get current user by JS  -->
+                <h2><label>Current user retrived by JS:</label> <span id="userName"></span></h2>
+
+                <script type="text/javascript">
+                    function getUserName() {
+                        var name = "auth.user=";
+                        var ca = document.cookie.split(';');
+                        for (var i = 0; i < ca.length; i++) {
+                            var c = ca[i];
+                            while (c.charAt(0) == ' ') c = c.substring(1);
+                            if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
+                        }
+                        return "";
+                    }
+
+                    $("#userName").html(getUserName());
+
+                </script>
+            </div>
+            <div class="col-lg-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Registered users list</h3>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+                            @foreach (var user in SimpleSecurityProvider.Current.GetRegisteredUsers())
+                            {
+                                <li class="list-group-item">@user.Identity.Name</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Example row of columns -->
@@ -51,4 +90,3 @@
     </div>
 
 </div> <!-- /container -->
-
